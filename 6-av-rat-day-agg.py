@@ -4,9 +4,14 @@ from datetime import datetime
 from pytz import utc
 import matplotlib.pyplot as plt
 
+
 data = pandas.read_csv("reviews.csv", parse_dates=['Timestamp'])
-data['Day'] = data['Timestamp'].dt.date
-day_average = data.groupby(['Day']).mean()
+data['Weekday'] = data['Timestamp'].dt.strftime('%A')
+data['Daynumber'] = data['Timestamp'].dt.strftime('%w')
+
+weekday_average = data.groupby(['Weekday', 'Daynumber']).mean()
+weekday_average = weekday_average.sort_values('Daynumber')
+
 
 chart_def = """
 {
@@ -76,9 +81,8 @@ def app():
     hc = jp.HighCharts(a=wp, options=chart_def)
     hc.options.title.text = "Average Rating by Day"
 
-    hc.options.xAxis.categories = list(day_average.index)
-    hc.options.series[0].data = list(day_average['Rating'])
-
+    hc.options.xAxis.categories = list(weekday_average.index)
+    hc.options.series[0].data = list(weekday_average['Rating'])
     return wp
 
 jp.justpy(app)
